@@ -1,18 +1,17 @@
 import "./App.css";
 import { useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { employees as employeeData } from "./data/employees";
 import { groupByDepartment } from "./utils/groupByDepartment";
-import { DepartmentSection } from "./components/DepartmentSection";
-import { SiteFooter } from "./components/SiteFooter";
-import { SiteHeader } from "./components/SiteHeader";
-import { AddEmployeeForm } from "./components/AddEmployeeForm";
+import Layout from "./components/Layout";
+import EmployeesPage from "./pages/EmployeesPage";
+import OrganizationPage from "./pages/OrganizationPage";
 import type { Employee } from "./types/employee";
 
 export default function App() {
   const [employees, setEmployees] = useState<Employee[]>(employeeData);
 
   const departments = groupByDepartment(employees);
-
   const departmentNames = departments.map((d) => d.name);
 
   const handleAddEmployee = (firstName: string, department: string) => {
@@ -27,21 +26,25 @@ export default function App() {
   };
 
   return (
-    <div className="page">
-      <SiteHeader />
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Navigate to="/employees" replace />} />
 
-      <main className="site-main">
-        {departments.map((department) => (
-          <DepartmentSection key={department.name} department={department} />
-        ))}
-
-        <AddEmployeeForm
-          departments={departmentNames}
-          onAdd={handleAddEmployee}
+        <Route
+          path="employees"
+          element={
+            <EmployeesPage
+              departments={departments}
+              departmentNames={departmentNames}
+              onAddEmployee={handleAddEmployee}
+            />
+          }
         />
-      </main>
 
-      <SiteFooter />
-    </div>
+        <Route path="organization" element={<OrganizationPage />} />
+
+        <Route path="*" element={<Navigate to="/employees" replace />} />
+      </Route>
+    </Routes>
   );
 }
