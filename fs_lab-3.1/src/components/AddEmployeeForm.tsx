@@ -1,53 +1,62 @@
-import { useState } from "react";
+import type { Employee } from "../types/employee";
+import { useFormInput } from "../hooks/useFormInput";
+import { employeeService } from "../services/employeeService";
+import { employeeRepo } from "../repositories/employeeRepo";
 
 type AddEmployeeFormProps = {
   departments: string[];
-  onAdd: (firstName: string, department: string) => void;
+  onAdd: (employees: Employee[]) => void; 
 };
 
 export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
-  const [firstName, setFirstName] = useState<string>("");
-  const [department, setDepartment] = useState<string>(departments[0] ?? "");
-  const [errors, setErrors] = useState<string[]>([]);
+  const firstNameInput = useFormInput<string>("");
+  const departmentInput = useFormInput<string>(departments[0] ?? "");
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Clear old validation messages
-    setErrors([]);
+    // clear old messages
+    firstNameInput.clearMessages();
+    departmentInput.clearMessages();
 
-    const trimmedFirstName = firstName.trim();
-    const trimmedDepartment = department.trim();
+    const result = employeeService.tryCreateEmployee({
+      firstName: firstNameInput.value,
+      department: departmentInput.value,
+      departments,
+    });
 
-    const newErrors: string[] = [];
-
-    if (trimmedFirstName.length < 3) {
-      newErrors.push("First name must be at least 3 characters.");
-    }
-
-    if (!departments.includes(trimmedDepartment)) {
-      newErrors.push("Please select an existing department.");
-    }
-
-    if (newErrors.length > 0) {
-      setErrors(newErrors);
+    if (!result.ok) {
+      firstNameInput.setMessages(result.errors.firstName ?? []);
+      departmentInput.setMessages(result.errors.department ?? []);
       return;
     }
 
-    onAdd(trimmedFirstName, trimmedDepartment);
+    // success: repo already created the employee, refresh employees from repo
+    const updatedEmployees = employeeRepo.getEmployees();
+    onAdd(updatedEmployees);
 
-    // Reset form fields after success
-    setFirstName("");
-    setDepartment(departments[0] ?? "");
+    // reset fields
+    firstNameInput.setValue("");
+    departmentInput.setValue(departments[0] ?? "");
   };
 
   return (
     <section>
       <h2>Add Employee</h2>
 
-      {errors.length > 0 ? (
+      {/* Messages for First Name */}
+      {firstNameInput.messages.length > 0 ? (
         <div>
-          {errors.map((message) => (
+          {firstNameInput.messages.map((message) => (
+            <p key={message}>{message}</p>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Messages for Department */}
+      {departmentInput.messages.length > 0 ? (
+        <div>
+          {departmentInput.messages.map((message) => (
             <p key={message}>{message}</p>
           ))}
         </div>
@@ -58,15 +67,18 @@ export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
           First Name
           <input
             type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            value={firstNameInput.value}
+            onChange={(e) => firstNameInput.onChange(e.target.value)}
             placeholder="At least 3 characters"
           />
         </label>
 
         <label>
           Department
-          <select value={department} onChange={(e) => setDepartment(e.target.value)}>
+          <select
+            value={departmentInput.value}
+            onChange={(e) => departmentInput.onChange(e.target.value)}
+          >
             {departments.map((d) => (
               <option key={d} value={d}>
                 {d}

@@ -1,10 +1,9 @@
-// src/services/employeeService.ts
 import { employeeRepo } from "../repositories/employeeRepo";
 
 export type CreateEmployeeInput = {
   firstName: string;
   department: string;
-  validDepartments: string[]; // array of department names/keys
+  departments: string[]; 
 };
 
 export type CreateEmployeeErrors = {
@@ -21,21 +20,21 @@ export const employeeService = {
     const errors: CreateEmployeeErrors = {};
 
     const trimmedFirstName = input.firstName.trim();
+    const trimmedDepartment = input.department.trim();
 
     if (trimmedFirstName.length < 3) {
       errors.firstName = ["First name must be at least 3 characters."];
     }
 
-    const departmentExists = input.validDepartments.includes(input.department);
-    if (!departmentExists) {
-      errors.department = ["Please select a valid department."];
+    if (!input.departments.includes(trimmedDepartment)) {
+      errors.department = ["Please select an existing department."];
     }
 
     if (Object.keys(errors).length > 0) {
       return { ok: false, errors };
     }
 
-    employeeRepo.createEmployee(trimmedFirstName, input.department);
+    employeeRepo.createEmployee(trimmedFirstName, trimmedDepartment);
     return { ok: true };
   },
 };
