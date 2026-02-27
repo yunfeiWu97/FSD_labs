@@ -1,6 +1,10 @@
-import type { Role } from "../types/Role";
+import { useState } from "react";
+import AddOrganizationRecordForm from "../components/AddOrganizationRecordForm";
+import { organizationRepo } from "../repositories/organizationRepo";
+import type { OrganizationRecord } from "../types/organization";
 
-const leadershipAndManagement: Role[] = [
+// Initial organization data (moved from page into repo-managed flow)
+const initialLeadershipAndManagement: OrganizationRecord[] = [
   { firstName: "Jo-Anne", lastName: "Sinclair", role: "CEO/Chair of Board" },
   { firstName: "Jackson", lastName: "Smith", role: "COO/VP Operations" },
   { firstName: "Susan", lastName: "Thomas", role: "CFO/VP Administration" },
@@ -49,17 +53,33 @@ const leadershipAndManagement: Role[] = [
 ];
 
 export default function OrganizationPage() {
+  // Seed repo once (simple approach for labs)
+  const [records, setRecords] = useState<OrganizationRecord[]>(() => {
+    const existing = organizationRepo.getAll();
+    if (existing.length === 0) {
+      // add initial data into repo
+      initialLeadershipAndManagement.forEach((r) => {
+        organizationRepo.create(r);
+      });
+      return organizationRepo.getAll();
+    }
+    return existing;
+  });
+
   return (
     <>
       <h2>Organization</h2>
 
+      <AddOrganizationRecordForm onCreated={setRecords} />
+
       <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "720px" }}>
-        {leadershipAndManagement.map((person) => {
+        {records.map((person) => {
           const fullName = `${person.firstName} ${person.lastName}`;
+          const key = `${person.role}-${fullName}`;
 
           return (
             <div
-              key={fullName}
+              key={key}
               style={{
                 display: "flex",
                 justifyContent: "space-between",
