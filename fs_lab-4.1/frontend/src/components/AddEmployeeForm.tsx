@@ -5,17 +5,16 @@ import { employeeRepo } from "../repositories/employeeRepo";
 
 type AddEmployeeFormProps = {
   departments: string[];
-  onAdd: (employees: Employee[]) => void; 
+  onAdd: (employees: Employee[]) => void;
 };
 
 export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
   const firstNameInput = useFormInput<string>("");
   const departmentInput = useFormInput<string>(departments[0] ?? "");
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // clear old messages
     firstNameInput.clearMessages();
     departmentInput.clearMessages();
 
@@ -31,11 +30,10 @@ export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
       return;
     }
 
-    // success: repo already created the employee, refresh employees from repo
-    const updatedEmployees = employeeRepo.getEmployees();
+    await employeeRepo.createEmployee(firstNameInput.value, departmentInput.value);
+    const updatedEmployees = await employeeRepo.getEmployees();
     onAdd(updatedEmployees);
 
-    // reset fields
     firstNameInput.setValue("");
     departmentInput.setValue(departments[0] ?? "");
   };
@@ -44,7 +42,6 @@ export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
     <section>
       <h2>Add Employee</h2>
 
-      {/* Messages for First Name */}
       {firstNameInput.messages.length > 0 ? (
         <div>
           {firstNameInput.messages.map((message) => (
@@ -53,7 +50,6 @@ export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
         </div>
       ) : null}
 
-      {/* Messages for Department */}
       {departmentInput.messages.length > 0 ? (
         <div>
           {departmentInput.messages.map((message) => (
@@ -79,9 +75,9 @@ export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
             value={departmentInput.value}
             onChange={(e) => departmentInput.onChange(e.target.value)}
           >
-            {departments.map((d) => (
-              <option key={d} value={d}>
-                {d}
+            {departments.map((department) => (
+              <option key={department} value={department}>
+                {department}
               </option>
             ))}
           </select>
