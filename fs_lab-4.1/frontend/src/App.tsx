@@ -4,9 +4,22 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import EmployeesPage from "./pages/EmployeesPage";
 import OrganizationPage from "./pages/OrganizationPage";
-import type { Employee } from "./types/employee";
+import type { Employee, Department } from "./types/employee";
 import { employeeRepo } from "./repositories/employeeRepo";
-import { groupByDepartment } from "./utils/groupByDepartment";
+
+function groupEmployeesByDepartment(employees: Employee[]): Department[] {
+  const departmentMap = new Map<string, Employee[]>();
+
+  employees.forEach((employee) => {
+    const currentEmployees = departmentMap.get(employee.department) ?? [];
+    departmentMap.set(employee.department, [...currentEmployees, employee]);
+  });
+
+  return Array.from(departmentMap.entries()).map(([name, employeesInDepartment]) => ({
+    name,
+    employees: employeesInDepartment,
+  }));
+}
 
 export default function App() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -24,7 +37,7 @@ export default function App() {
     void loadEmployees();
   }, []);
 
-  const departments = groupByDepartment(employees);
+  const departments = groupEmployeesByDepartment(employees);
   const departmentNames = departments.map((department) => department.name);
 
   function handleEmployeesUpdated(updatedEmployees: Employee[]) {
