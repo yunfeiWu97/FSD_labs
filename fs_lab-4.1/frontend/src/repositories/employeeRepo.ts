@@ -1,18 +1,13 @@
 // src/repositories/employeeRepo.ts
 import type { Employee } from "../types/employee";
-import { employees as initialEmployees } from "../data/employees";
 
-/**
- * In-memory temporary storage
- * Repo is the single source of truth for Employees data access.
- */
-let employeesStore: Employee[] = structuredClone(initialEmployees);
+const EMPLOYEE_API_URL = "http://localhost:3001/api/employees";
 
 export type DepartmentEmployeesMap = Record<string, Employee[]>;
 
 function groupByDepartment(employees: Employee[]): DepartmentEmployeesMap {
   return employees.reduce<DepartmentEmployeesMap>((result, employee) => {
-    const department = employee.department; 
+    const department = employee.department;
     const currentList = result[department] ?? [];
     result[department] = [...currentList, employee];
     return result;
@@ -20,21 +15,41 @@ function groupByDepartment(employees: Employee[]): DepartmentEmployeesMap {
 }
 
 export const employeeRepo = {
-  getEmployees(): Employee[] {
-    return structuredClone(employeesStore);
+  async getEmployees(): Promise<Employee[]> {
+    const response = await fetch(EMPLOYEE_API_URL);
+
+    if (!response.ok) {
+      throw new Error("Unable to load employees.");
+    }
+
+    return response.json();
   },
 
-  getEmployeesGroupedByDepartment(): DepartmentEmployeesMap {
-    return structuredClone(groupByDepartment(employeesStore));
+  async getEmployeesGroupedByDepartment(): Promise<DepartmentEmployeesMap> {
+    const employees = await this.getEmployees();
+    return groupByDepartment(employees);
   },
 
-  createEmployee(firstName: string, department: string): Employee {
-    const newEmployee: Employee = {
-      firstName,
-      department,
-    };
+  async createEmployee(firstName: string, department: string): Promise<Employee> {
+    const response = await fetch(EMPLOYEE_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName,
+        lastName: "",
+        department,
+        role: "",
+      }),
+    });
 
-    employeesStore = [...employeesStore, newEmployee];
-    return structuredClone(newEmployee);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to create employee.");
+    }
+
+    return data;
   },
 };
