@@ -1,27 +1,47 @@
 import type { OrganizationRecord } from "../types/organization";
 
-let organizationStore: OrganizationRecord[] = [];
+const ORGANIZATION_API_URL = "http://localhost:3001/api/organization";
 
 function normalizeRole(role: string): string {
   return role.trim().toLowerCase();
 }
 
 export const organizationRepo = {
-  getAll(): OrganizationRecord[] {
-    return structuredClone(organizationStore);
+  async getAll(): Promise<OrganizationRecord[]> {
+    const response = await fetch(ORGANIZATION_API_URL);
+
+    if (!response.ok) {
+      throw new Error("Unable to load organization records.");
+    }
+
+    return response.json();
   },
 
-  roleIsOccupied(role: string): boolean {
+  async roleIsOccupied(role: string): Promise<boolean> {
+    const records = await this.getAll();
     const key = normalizeRole(role);
-    return organizationStore.some((r) => normalizeRole(r.role) === key);
+    return records.some((record) => normalizeRole(record.role) === key);
   },
 
-  create(record: OrganizationRecord): OrganizationRecord[] {
-    organizationStore = [...organizationStore, record];
-    return structuredClone(organizationStore);
+  async create(record: OrganizationRecord): Promise<OrganizationRecord> {
+    const response = await fetch(ORGANIZATION_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(record),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to create organization record.");
+    }
+
+    return data;
   },
 
-  clear(): void {
-    organizationStore = [];
+  async clear(): Promise<void> {
+    return;
   },
 };
