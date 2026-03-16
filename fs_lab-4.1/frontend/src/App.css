@@ -1,0 +1,27 @@
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #111827;
+  border-bottom: 1px solid #243244;
+}
+
+.logo {
+  width: 204px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.site-main {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.site-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #243244;
+  color: #94a3b8;
+  text-align: center;
+}
