@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import EmployeesPage from "./pages/EmployeesPage";
@@ -9,10 +9,23 @@ import { employeeRepo } from "./repositories/employeeRepo";
 import { groupByDepartment } from "./utils/groupByDepartment";
 
 export default function App() {
-  const [employees, setEmployees] = useState<Employee[]>(() => employeeRepo.getEmployees());
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  useEffect(() => {
+    async function loadEmployees() {
+      try {
+        const loadedEmployees = await employeeRepo.getEmployees();
+        setEmployees(loadedEmployees);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    void loadEmployees();
+  }, []);
 
   const departments = groupByDepartment(employees);
-  const departmentNames = departments.map((d) => d.name);
+  const departmentNames = departments.map((department) => department.name);
 
   function handleEmployeesUpdated(updatedEmployees: Employee[]) {
     setEmployees(updatedEmployees);
