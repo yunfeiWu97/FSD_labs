@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import employeeRoutes from "./routes/employeeRoutes";
+import organizationRoutes from "./routes/organizationRoutes";
 
 const app = express();
 
@@ -13,5 +14,6 @@ app.use(
 app.use(express.json());
 
 app.use("/api/employees", employeeRoutes);
+app.use("/api/organization", organizationRoutes);
 
 export default app;
