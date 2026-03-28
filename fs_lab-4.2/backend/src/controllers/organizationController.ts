@@ -8,25 +8,17 @@ export const organizationController = {
   /**
    * Handle request to get all organization records.
    */
-  getAllRecords(_request: Request, response: Response): void {
-    const records = organizationService.getAllRecords();
+  async getAllRecords(_request: Request, response: Response): Promise<void> {
+    const records = await organizationService.getAllRecords();
     response.status(200).json(records);
   },
 
   /**
    * Handle request to create a new organization record.
    */
-  createRecord(request: Request, response: Response): void {
-    try {
-      const newRecord = organizationService.createRecord(request.body);
-      response.status(201).json(newRecord);
-    } catch (error) {
-      response.status(400).json({
-        message:
-          error instanceof Error
-            ? error.message
-            : "Unable to create organization record.",
-      });
-    }
+  createRecord(_request: Request, response: Response): void {
+    response.status(501).json({
+      message: "Create organization record is not implemented for Lab 4.2.",
+    });
   },
 };

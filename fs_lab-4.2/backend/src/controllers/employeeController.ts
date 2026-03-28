@@ -1,30 +1,13 @@
-import { Request, Response } from "express";
-import { employeeService } from "../services/employeeService";
+import { employeeRepository } from "../repositories/employeeRepository";
 
 /**
- * Controller for employee requests.
+ * Service for employee business logic.
  */
-export const employeeController = {
+export const employeeService = {
   /**
-   * Handle request to get all employees.
+   * Get all employees.
    */
-  getAllEmployees(_request: Request, response: Response): void {
-    const employees = employeeService.getAllEmployees();
-    response.status(200).json(employees);
-  },
-
-  /**
-   * Handle request to create a new employee.
-   */
-  createEmployee(request: Request, response: Response): void {
-    try {
-      const newEmployee = employeeService.createEmployee(request.body);
-      response.status(201).json(newEmployee);
-    } catch (error) {
-      response.status(400).json({
-        message:
-          error instanceof Error ? error.message : "Unable to create employee.",
-      });
-    }
+  async getAllEmployees() {
+    return employeeRepository.getAll();
   },
 };
