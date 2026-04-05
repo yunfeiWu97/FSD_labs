@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { clerkMiddleware } from "@clerk/express";
 import employeeRoutes from "./routes/employeeRoutes";
 import organizationRoutes from "./routes/organizationRoutes";
 
@@ -12,6 +13,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(clerkMiddleware());
 
 app.use("/api/employees", employeeRoutes);
 app.use("/api/organization", organizationRoutes);

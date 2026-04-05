@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/express": "^2.0.8",
+    "@clerk/react": "^6.1.4",
     "@prisma/client": "^6.19.0",
     "cors": "^2.8.6",
     "express": "^5.2.1"
