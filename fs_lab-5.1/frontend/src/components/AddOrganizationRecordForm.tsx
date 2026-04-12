@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@clerk/react";
 import TextInputField from "./TextInputField";
 import { organizationRepo } from "../repositories/organizationRepo";
 import type { OrganizationRecord } from "../types/organization";
@@ -7,7 +8,11 @@ type Props = {
   onCreated: () => void;
 };
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export default function AddOrganizationRecordForm({ onCreated }: Props) {
+  const { getToken } = useAuth();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
@@ -45,13 +50,27 @@ export default function AddOrganizationRecordForm({ onCreated }: Props) {
       return;
     }
 
+    const token = await getToken();
+
     const record: OrganizationRecord = {
       firstName,
       lastName,
       role,
     };
 
-    await organizationRepo.create(record);
+    const response = await fetch(`${apiBaseUrl}/api/organization`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token ?? ""}`,
+      },
+      body: JSON.stringify(record),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create organization record");
+    }
+
     await onCreated();
 
     setFirstName("");

@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/react";
 import type { Employee } from "../types/employee";
 import { useFormInput } from "../hooks/useFormInput";
 import { employeeService } from "../services/employeeService";
@@ -8,7 +9,11 @@ type AddEmployeeFormProps = {
   onAdd: (employees: Employee[]) => void;
 };
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
+  const { getToken } = useAuth();
+
   const firstNameInput = useFormInput<string>("");
   const departmentInput = useFormInput<string>(departments[0] ?? "");
 
@@ -30,7 +35,24 @@ export function AddEmployeeForm({ departments, onAdd }: AddEmployeeFormProps) {
       return;
     }
 
-    await employeeRepo.createEmployee(firstNameInput.value, departmentInput.value);
+    const token = await getToken();
+
+    const response = await fetch(`${apiBaseUrl}/api/employees`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token ?? ""}`,
+      },
+      body: JSON.stringify({
+        firstName: firstNameInput.value,
+        department: departmentInput.value,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create employee");
+    }
+
     const updatedEmployees = await employeeRepo.getEmployees();
     onAdd(updatedEmployees);
 
