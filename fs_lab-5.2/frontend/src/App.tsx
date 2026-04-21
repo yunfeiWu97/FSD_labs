@@ -1,6 +1,6 @@
 import "./App.css";
-import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Layout from "./components/Layout";
 import EmployeesPage from "./pages/EmployeesPage";
 import OrganizationPage from "./pages/OrganizationPage";
@@ -22,26 +22,31 @@ function groupEmployeesByDepartment(employees: Employee[]): Department[] {
 }
 
 export default function App() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    async function loadEmployees() {
-      try {
-        const loadedEmployees = await employeeRepo.getEmployees();
-        setEmployees(loadedEmployees);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    void loadEmployees();
-  }, []);
+  const {
+    data: employees = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["employees"],
+    queryFn: () => employeeRepo.getEmployees(),
+  });
 
   const departments = groupEmployeesByDepartment(employees);
   const departmentNames = departments.map((department) => department.name);
 
   function handleEmployeesUpdated(updatedEmployees: Employee[]) {
-    setEmployees(updatedEmployees);
+    queryClient.setQueryData(["employees"], updatedEmployees);
+  }
+
+  if (isLoading) {
+    return <p>Loading employees...</p>;
+  }
+
+  if (isError) {
+    return <p>{(error as Error).message || "Failed to load employees."}</p>;
   }
 
   return (
